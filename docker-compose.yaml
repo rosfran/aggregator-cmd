@@ -1,0 +1,23 @@
+services:
+
+  app:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./src/main/resources:/app/vol
+    expose:
+      - 8182
+    ports:
+      - 8182:8182
+    networks:
+      - csvaggr
+
+
+networks:
+  csvaggr:
+    driver: bridge
+
+  

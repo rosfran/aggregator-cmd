@@ -1,0 +1,12 @@
+FROM maven:3.8-openjdk-8-slim as builder
+
+WORKDIR /app
+
+COPY pom.xml .
+
+RUN mvn -B -f pom.xml dependency:go-offline
+# Copy all other project files and build project
+COPY . /app
+RUN mvn -B install -DskipTests=true
+
+ENTRYPOINT ["mvn", "test" ]
