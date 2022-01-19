@@ -2,12 +2,14 @@ package com.mendix.csv.aggregator.util;
 
 
 import com.mendix.csv.aggregator.config.ApplicationConfig;
+import com.mendix.csv.aggregator.tasks.CSVReaderChunkTask;
+import com.mendix.csv.aggregator.tasks.CSVReaderTask;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
@@ -15,6 +17,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -109,6 +112,19 @@ public class FilesUtil
             {
                 ioException.printStackTrace();
             }
+        } else {
+            try
+            {
+
+                    Files.write(caminho, ( "").getBytes(),
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+
+            }
+            catch (IOException ioException)
+            {
+                ioException.printStackTrace();
+            }
         }
 
 
@@ -128,16 +144,14 @@ public class FilesUtil
         {
             try
             {
-                Stream<Path> sFiles = Files.find(caminho,
+                Files.find(caminho,
                         1,
                         (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
-                );
-
-                sFiles.parallel().forEach( f -> {
+                ).parallel().forEach(f -> {
 
                     try
                     {
-                        Files.lines(f).forEach( l -> tSet.add(l) );
+                        Files.lines(f).filter( l -> Strings.isNotBlank(l) ).forEach( l -> tSet.add(l) );
 
                         //tSet.addAll(cont.collect(Collectors.toList()));
                     }
@@ -183,9 +197,7 @@ public class FilesUtil
 
                     try
                     {
-                        Stream<String> cont = Files.lines(f);
-
-                        tSet.addAll(cont.collect(Collectors.toList()));
+                        Files.lines(f).filter( l -> Strings.isNotBlank(l) ).forEach( l -> tSet.add(l) );
                     }
                     catch (IOException e)
                     {
@@ -228,20 +240,253 @@ public class FilesUtil
         }
     }
 
+
+    static class CSVReaderTask1 extends ForkJoinTask<List<String>>
+    {
+
+        private final Path file;
+
+        private List<String> st = null;
+
+        public CSVReaderTask1(Path f) {
+            this.file = f;
+        }
+
+        @Override
+        public List<String> getRawResult()
+        {
+            return st;
+        }
+
+        @Override
+        protected void setRawResult(List<String> value)
+        {
+
+        }
+
+        @Override
+        protected boolean exec()
+        {
+            try (final Stream<String> lines = Files.lines(file)) {
+                st = lines.parallel() // use default parallel ExecutorService
+                        .filter( l -> Strings.isNotBlank(l) ).collect(Collectors.toUnmodifiableList());
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+    }
+
+    static private void sleep()
+    {
+        try
+        {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    static Set<String> readAllLinesFromDirForkJoin(String dir) throws IOException
+    {
+
+        Path caminho = Paths.get(dir);
+
+        Set<String> tSet =  new TreeSet<String>();
+
+        final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+
+        final ForkJoinPool forkJoinPool = new ForkJoinPool(numberOfProcessors);
+
+        /* check if the source directory exists */
+        if ( Files.exists(caminho) && Files.isDirectory(caminho))
+        {
+            try
+            {
+                Stream<Path> s = Files.find(caminho,
+                        1,
+                        (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
+                );
+
+
+                List<CSVReaderTask> lsTasks = new ArrayList<CSVReaderTask>();
+                s.forEach( f -> {
+
+                        CSVReaderTask t =  new CSVReaderTask( f );
+
+                        lsTasks.add( t );
+
+                        forkJoinPool.execute( t );
+
+                } );
+
+                do
+                {
+                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
+                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
+                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
+                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
+
+                } while ( !isEveryTaskFinished(lsTasks) );
+
+                //forkJoinPool.awaitQuiescence( 40, TimeUnit.SECONDS );
+                forkJoinPool.shutdown();
+
+                for ( CSVReaderTask task : lsTasks )
+                {
+                    List<String> partialList = task.join();
+                    tSet.addAll( partialList );
+                }
+
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+
+        }
+
+        return tSet;
+
+    }
+
+
+    static Set<String> readAllLinesFromDirForkJoinOptimized(String dir) throws IOException
+    {
+
+        Path caminho = Paths.get(dir);
+
+        Set<String> tSet =  new TreeSet<String>();
+
+        final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+
+        final ForkJoinPool forkJoinPool = new ForkJoinPool(numberOfProcessors);
+
+        /* check if the source directory exists */
+        if ( Files.exists(caminho) && Files.isDirectory(caminho))
+        {
+            try
+            {
+                List<Path> s = Files.find(caminho,
+                        1,
+                        (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
+                ).collect( Collectors.toUnmodifiableList());
+
+                List<CSVReaderChunkTask> lsTasks = new ArrayList<CSVReaderChunkTask>();
+
+                CSVReaderChunkTask t1 =  new CSVReaderChunkTask( s.subList(0, s.size()/4 ) );
+
+                lsTasks.add( t1 );
+
+                forkJoinPool.execute( t1 );
+
+                CSVReaderChunkTask t2 =  new CSVReaderChunkTask( s.subList(s.size()/4, s.size()/2  ) );
+
+                lsTasks.add( t2 );
+
+                forkJoinPool.execute( t2 );
+
+                CSVReaderChunkTask t3 =  new CSVReaderChunkTask( s.subList(s.size()/2, (3*s.size())/4  ) );
+
+                lsTasks.add( t3 );
+
+                forkJoinPool.execute( t3 );
+
+                CSVReaderChunkTask t4 =  new CSVReaderChunkTask( s.subList((3*s.size())/4, s.size() ) );
+
+                lsTasks.add( t4 );
+
+                forkJoinPool.execute( t4 );
+
+                do
+                {
+                    System.out.printf("******************************************\n");
+                    System.out.printf("Main: Parallelism: %d\n", forkJoinPool.getParallelism());
+                    System.out.printf("Main: Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
+                    System.out.printf("Main: Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
+                    System.out.printf("Main: Steal Count: %d\n", forkJoinPool.getStealCount());
+                    System.out.printf("******************************************\n");
+
+                } while ( !isEveryTaskFinishedOpt(lsTasks) );
+
+                //forkJoinPool.awaitQuiescence( 40, TimeUnit.SECONDS );
+                forkJoinPool.shutdown();
+
+                for ( CSVReaderChunkTask task : lsTasks )
+                {
+                    List<String> partialList = task.join();
+                    tSet.addAll( partialList );
+                }
+
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+
+        }
+
+        return tSet;
+
+    }
+
+    private static boolean isEveryTaskFinished(List<CSVReaderTask> lsTasks)
+    {
+        for (CSVReaderTask task : lsTasks)
+        {
+            if ( !task.isCompletedNormally() )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean isEveryTaskFinishedOpt(List<CSVReaderChunkTask> lsTasks)
+    {
+        for (CSVReaderChunkTask task : lsTasks)
+        {
+            if ( !task.isCompletedNormally() )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static OptionalInt parseInt(final String s) {
+        try {
+            return OptionalInt.of(Integer.parseInt(s));
+        } catch (final NumberFormatException e) {
+            return OptionalInt.empty();
+        }
+    }
+
+
     static public void main( String[] args )
     {
         try
         {
             long start = Instant.now().toEpochMilli();
-            Set<String> l = FilesUtil.readAllLinesFromDir("src/main/resources/medium_example/");
+            //Set<String> l = FilesUtil.readAllLinesFromDir("src/main/resources/medium_example/");
+            Set<String> l = FilesUtil.readAllLinesFromDirForkJoinOptimized("src/main/resources/medium_example/");
+            //Set<String> l = FilesUtil.readAllLinesFromDirForkJoin("src/main/resources/medium_example/");
 
             Stream.of(l).forEach(System.out::println);
 
             System.out.println("size = "+l.size());
 
-            FilesUtil.writeAllLinesSortedToFile(l, "src/main/resources/medium_example/t.dat");
+            FilesUtil.writeAllLinesSortedToFile(l, "src/main/resources/t.dat");
             long end = Instant.now().toEpochMilli();
-            System.out.println(String.format("\tCompleted in %d milliseconds", (end-start)));
+            System.out.println(String.format("\tCompleted in %d milliseconds", (end - start)));
         }
         catch (IOException e)
         {
