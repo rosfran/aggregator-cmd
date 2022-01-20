@@ -10,15 +10,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.mendix.csv.aggregator.tasks.util.TasksUtil.sleep;
 import static com.mendix.csv.aggregator.tasks.util.TasksUtil.splitArrays;
 
 /**
@@ -32,7 +30,7 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
     {
         Path directory = Paths.get(dir);
 
-        Set<String> tSet =  new TreeSet<String>();
+        Set<String> tSet = Collections.synchronizedSet(new TreeSet<String>());
 
         final ForkJoinPool forkJoinPool = new ForkJoinPool(numberOfProcessors);
 
@@ -47,7 +45,7 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
                 );
 
                 List<CSVReaderTask> lsTasks = new ArrayList<CSVReaderTask>();
-                allFilesFromDir.forEach( f -> {
+                allFilesFromDir.parallel().forEach( f -> {
 
                     CSVReaderTask t =  new CSVReaderTask( f );
 
@@ -67,16 +65,19 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
 //                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
 //                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
 
+                    sleep();
                 } while ( !TasksUtil.isEveryTaskFinished(lsTasksConv) );
 
                 //forkJoinPool.awaitQuiescence( 40, TimeUnit.SECONDS );
-                forkJoinPool.shutdown();
+
 
                 for ( CSVReaderTask task : lsTasks )
                 {
                     List<String> partialList = task.join();
                     tSet.addAll( partialList );
                 }
+
+                forkJoinPool.shutdown();
 
             }
             catch (IOException e)

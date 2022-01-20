@@ -19,6 +19,7 @@ A solution to merge in a sorted way a list of CSV files.
     
     run_csv_aggregator_medium_strategy_external_sort.sh
     run_csv_aggregator_small_strategy_parallel.sh
+    run_csv_aggregator_medium_fork_join.sh
 
 # Reading, sorting and merging strategies
     
@@ -40,6 +41,14 @@ A solution to merge in a sorted way a list of CSV files.
 ###           each individuals Tasks runs only one file entry. 
 ###           Implemented by class: com.mendix.csv.aggregator.parallel.impl.ParallelProcessingForkJoinImpl
     
+    The best performance is for the external strategy. It has almost the double of perfomance when compared with
+    the forkjoin strategy.
+
+    The usage of Fork Join framework is awesome on recursive tasks, where you have tasks running a lot of 
+    subtasks. Another great advantage of using Fork Join is the "work stealing" mechanisms, which 
+    allows that one task may use the task from another task, just in case a given task doesn't have
+    tasks available.
+
 # Running it
 
     The application runs through the command line. There are 3 arguments that may be passed to the application:
@@ -80,3 +89,10 @@ java -jar target/aggregator-cmd-0.0.1.jar strategy=external fromDir=src/main/res
 
 ## run_csv_aggregator_tests.sh
     Runs the Unit test cases.
+
+
+# References
+
+### https://developer.ibm.com/articles/j-java-streams-1-brian-goetz/
+### https://en.wikipedia.org/wiki/Fork%E2%80%93join_model
+### Doug Lea explaining Fork Join - http://gee.cs.oswego.edu/dl/papers/fj.pdf

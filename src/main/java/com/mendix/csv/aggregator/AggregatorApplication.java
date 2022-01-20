@@ -42,33 +42,34 @@ public class AggregatorApplication implements ApplicationRunner
 		logger.info("NonOptionArgs: {}", args.getNonOptionArgs());
 		logger.info("OptionNames: {}", args.getOptionNames());
 
-		for (String name : args.getOptionNames()){
-			logger.info("arg-" + name + "=" + args.getOptionValues(name));
-		}
-
 		String fromDir = null;
 		String toFile = null;
 		ParallelStrategyType strategy = null;
 
-		if (args.containsOption("fromDir"))
-		{
-			fromDir = args.getOptionValues("fromDir").get(0);
-			logger.info("Contains fromDir: " + fromDir);
+		for (String name : args.getNonOptionArgs()){
+			logger.info("arg-" + name );
+
+			if (name.startsWith("fromDir"))
+			{
+				fromDir = name.substring(name.indexOf('=')+1);
+				logger.info("Contains fromDir: " + fromDir);
+			}
+
+			if (name.startsWith("toFile"))
+			{
+				toFile =  name.substring(name.indexOf('=')+1);
+				logger.info("Contains toFile: " + toFile);
+			}
+
+			if (name.startsWith("strategy"))
+			{
+				String st =  name.substring(name.indexOf('=')+1);
+
+				strategy = ParallelStrategyType.fromArgument(st);
+				logger.info("Contains strategy: " + strategy.getDescription());
+			}
 		}
 
-		if (args.containsOption("toFile"))
-		{
-			toFile = args.getOptionValues("toFile").get(0);
-			logger.info("Contains toFile: " + toFile);
-		}
-
-		if (args.containsOption("strategy"))
-		{
-			String st = args.getOptionValues("strategy").get(0);
-
-			strategy = ParallelStrategyType.fromArgument(st);
-			logger.info("Contains strategy: " + strategy.getDescription());
-		}
 
 		fromDir = Strings.isNotEmpty(fromDir) ? fromDir : "src/main/resources/medium_example/";
 
