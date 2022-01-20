@@ -60,7 +60,7 @@ public class CSVReaderTask extends RecursiveTask<List<String>>
         return list;
     }
 
-    private void addResultsFromTasks(List<String> list, List<CSVReaderTask> tasks)
+    public void addResultsFromTasks(List<String> list, List<CSVReaderTask> tasks)
     {
         for (CSVReaderTask item : tasks)
         {

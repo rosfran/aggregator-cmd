@@ -1,5 +1,5 @@
 
-FROM maven:3.8-openjdk-8-slim as builder
+FROM maven:3.8-openjdk-11-slim as builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ COPY . /app
 RUN mvn -B install -DskipTests=true
 
 ### BUILD image
-FROM openjdk:8-slim
+FROM openjdk:11-slim
 
 EXPOSE 8182
 
@@ -38,6 +38,6 @@ WORKDIR $APP_HOME
 #COPY --chown=gradle:gradle . /home/gradle/src
 COPY ./target/*.jar aggregator-0.0.1.jar
 
-ENTRYPOINT ["java", "-jar","aggregator-0.0.1.jar" ]
+ENTRYPOINT ["java", "-jar","aggregator-cmd-0.0.1.jar" ]
 #CMD ["-Djava.security.egd=file:/dev/./urandom -Ddir.resources=/app/vol/ -Ddir.small=/app/vol/small_example/ -Ddir.medium=/app/vol/medium_example/"]
 

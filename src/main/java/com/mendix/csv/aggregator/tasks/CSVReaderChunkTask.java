@@ -21,7 +21,7 @@ public class CSVReaderChunkTask extends RecursiveTask<List<String>>
     }
 
     @Override
-    protected List<String> compute()
+    public List<String> compute()
     {
         List<String> list = new ArrayList<String>();
 
@@ -47,7 +47,7 @@ public class CSVReaderChunkTask extends RecursiveTask<List<String>>
         return list;
     }
 
-    private void addResultsFromTasks(List<String> list, List<CSVReaderChunkTask> tasks)
+    public void addResultsFromTasks(List<String> list, List<CSVReaderChunkTask> tasks)
     {
         for (CSVReaderChunkTask item : tasks)
         {
