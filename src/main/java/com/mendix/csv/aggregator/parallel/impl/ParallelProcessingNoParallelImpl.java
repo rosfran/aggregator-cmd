@@ -8,11 +8,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
+/**
+ * Reads, merges and sorts all files using Java Streams with no parallelization
+ */
 public class ParallelProcessingNoParallelImpl extends ParallelProcessingStrategy
 {
 
@@ -29,16 +31,16 @@ public class ParallelProcessingNoParallelImpl extends ParallelProcessingStrategy
         {
             try
             {
-                Stream<Path> s = Files.find(caminho,
+                Stream<Path> allFilesFromDir = Files.find(caminho,
                         1,
                         (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
                 );
 
-                s.forEach( f -> {
+                allFilesFromDir.forEach( f -> {
 
                     try
                     {
-                        Files.lines(f).filter( l -> Strings.isNotBlank(l) ).forEach( l -> tSet.add(l) );
+                        Files.lines(f).sequential().filter( l -> Strings.isNotBlank(l) ).forEach( l -> tSet.add(l) );
                     }
                     catch (IOException e)
                     {

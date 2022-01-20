@@ -12,6 +12,9 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * Merge and sort all files using Java Parallel Streams
+ */
 public class ParallelProcessingStreamImpl extends ParallelProcessingStrategy
 {
 
@@ -35,7 +38,7 @@ public class ParallelProcessingStreamImpl extends ParallelProcessingStrategy
 
                     try
                     {
-                        Files.lines(f).filter( l -> Strings.isNotBlank(l) ).forEach(l -> tSet.add(l) );
+                        Files.lines(f).parallel().filter( l -> Strings.isNotBlank(l) ).forEach(l -> tSet.add(l) );
                     }
                     catch (IOException e)
                     {

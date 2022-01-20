@@ -21,51 +21,53 @@ import java.util.stream.Stream;
 
 import static com.mendix.csv.aggregator.tasks.util.TasksUtil.splitArrays;
 
+/**
+ * Reads, sorts and merges all CSV entries, running a Task (Worker Thread) by each file entry
+ */
 public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
 {
 
     @Override
     public Set<String> process(String dir) throws IOException
     {
-        Path caminho = Paths.get(dir);
+        Path directory = Paths.get(dir);
 
         Set<String> tSet =  new TreeSet<String>();
-
-        final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
 
         final ForkJoinPool forkJoinPool = new ForkJoinPool(numberOfProcessors);
 
         /* check if the source directory exists */
-        if ( Files.exists(caminho) && Files.isDirectory(caminho))
+        if ( Files.exists(directory) && Files.isDirectory(directory))
         {
             try
             {
-                Stream<Path> s = Files.find(caminho,
+                Stream<Path> allFilesFromDir = Files.find(directory,
                         1,
                         (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
                 );
 
                 List<CSVReaderTask> lsTasks = new ArrayList<CSVReaderTask>();
-                s.parallel().forEach( f -> {
+                allFilesFromDir.forEach( f -> {
 
-                CSVReaderTask t =  new CSVReaderTask( f );
+                    CSVReaderTask t =  new CSVReaderTask( f );
 
-                lsTasks.add( t );
+                    lsTasks.add( t );
 
-                forkJoinPool.execute( t );
+                    forkJoinPool.execute( t );
 
                 } );
 
+                List<ForkJoinTask> lsTasksConv = lsTasks.stream()
+                        .map(object -> (ForkJoinTask)object)
+                        .collect(Collectors.toList());
                 do
                 {
-                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
-                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
-                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
-                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
+//                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
+//                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
+//                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
+//                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
 
-                } while ( !TasksUtil.isEveryTaskFinished(lsTasks.stream()
-                        .map(object -> (ForkJoinTask)object)
-                        .collect(Collectors.toList())) );
+                } while ( !TasksUtil.isEveryTaskFinished(lsTasksConv) );
 
                 //forkJoinPool.awaitQuiescence( 40, TimeUnit.SECONDS );
                 forkJoinPool.shutdown();

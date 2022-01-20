@@ -17,6 +17,10 @@ import java.util.stream.Collectors;
 
 import static com.mendix.csv.aggregator.tasks.util.TasksUtil.splitArrays;
 
+/**
+ * Reads, merges and sorts all entries from CSV files, using
+ * a kind of "external sort" strategy, using Fork Join pool
+ */
 public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrategy
 {
 
@@ -24,27 +28,25 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
     public Set<String> process(String dir) throws IOException
     {
 
-        Path caminho = Paths.get(dir);
+        Path directory = Paths.get(dir);
 
         Set<String> tSet =  new TreeSet<String>();
 
-        final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
-
-        final ForkJoinPool forkJoinPool = new ForkJoinPool(numberOfProcessors);
+        final ForkJoinPool forkJoinPool = new ForkJoinPool(numberOfProcessors );
 
         /* check if the source directory exists */
-        if ( Files.exists(caminho) && Files.isDirectory(caminho))
+        if ( Files.exists(directory) && Files.isDirectory(directory))
         {
             try
             {
-                List<Path> s = Files.find(caminho,
+                List<Path> allFilesFromDir = Files.find(directory,
                         1,
                         (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
-                ).collect( Collectors.toList());
+                ).parallel().collect( Collectors.toList());
 
                 List<CSVReaderChunkTask> lsTasks = new ArrayList<CSVReaderChunkTask>();
 
-                List<Path>[] chunks = splitArrays(new ArrayList(s), 6);
+                List<Path>[] chunks = splitArrays(new ArrayList(allFilesFromDir), 6);
 
                 for ( List<Path> col : chunks )
                 {
@@ -55,17 +57,17 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
                     forkJoinPool.execute( t );
                 }
 
+                List<ForkJoinTask> lsTasksConv = lsTasks.stream()
+                        .map(object -> (ForkJoinTask)object)
+                        .collect(Collectors.toList());
                 do
                 {
+//                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
+//                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
+//                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
+//                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
 
-                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
-                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
-                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
-                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
-
-                } while ( !TasksUtil.isEveryTaskFinished(lsTasks.stream()
-                       .map(object -> (ForkJoinTask)object)
-                        .collect(Collectors.toList())) );
+                } while ( !TasksUtil.isEveryTaskFinished(lsTasksConv) );
 
                 //forkJoinPool.awaitQuiescence( 40, TimeUnit.SECONDS );
                 forkJoinPool.shutdown();

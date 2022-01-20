@@ -8,7 +8,7 @@ public interface ParallelProcessingStrategyInterface
 
     public Set<String> processAllFiles(String dir) throws IOException;
 
-    public Set<String> process(String dir) throws IOException;
+    Set<String> process(String dir) throws IOException;
 
     void preProcessing();
 

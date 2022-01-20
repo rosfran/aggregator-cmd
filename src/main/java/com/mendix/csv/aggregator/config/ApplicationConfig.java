@@ -1,14 +1,9 @@
 package com.mendix.csv.aggregator.config;
 
-import com.mendix.csv.aggregator.service.CSVAggregatorService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 
@@ -17,7 +12,6 @@ import javax.annotation.PreDestroy;
 
 
 @ConfigurationProperties(prefix = "application")
-//@ConfigurationProperties
 public class ApplicationConfig {
 
 
