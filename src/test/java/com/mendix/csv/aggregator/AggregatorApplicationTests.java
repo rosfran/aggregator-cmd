@@ -9,6 +9,7 @@ import com.mendix.csv.aggregator.util.FilesUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -33,8 +34,9 @@ class AggregatorApplicationTests
 
 	@Test
 	@DisplayName("Runs the External Sorting parallel algorithm over the Medium Files")
-	void testMediumFilesProcessingExternalSorting()
+	void testMediumFilesProcessingExternalSorting(TestInfo info)
 	{
+		logger.info(info.getDisplayName());
 		ParallelProcessingStrategy concurrency = new ParallelProcessingExternalSortImpl();
 		Set<String> result = null;
 		try
@@ -47,7 +49,7 @@ class AggregatorApplicationTests
 		}
 		//Stream.of(result).forEach(System.out::println);
 
-		System.out.println("size = "+result.size());
+		logger.info("size = "+result.size());
 
 		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/medium_external_sort.dat");
 
@@ -58,8 +60,9 @@ class AggregatorApplicationTests
 
 	@Test
 	@DisplayName("Runs the Java Parallel Streams on the Medium Files")
-	void testMediumFilesProcessingParallelStream()
+	void testMediumFilesProcessingParallelStream( TestInfo info )
 	{
+		logger.info(info.getDisplayName());
 		ParallelProcessingStrategy concurrency = new ParallelProcessingStreamImpl();
 		Set<String> result = null;
 		try
@@ -72,7 +75,7 @@ class AggregatorApplicationTests
 		}
 		//Stream.of(result).forEach(System.out::println);
 
-		System.out.println("size = "+result.size());
+		logger.info("size = "+result.size());
 
 		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/medium_parallel_stream.dat");
 
@@ -83,8 +86,9 @@ class AggregatorApplicationTests
 
 	@Test
 	@DisplayName("Runs the Java Sequential Streams on the Medium Files")
-	void testMediumFilesProcessingSequentialStream()
+	void testMediumFilesProcessingSequentialStream(TestInfo info )
 	{
+		logger.info(info.getDisplayName());
 		ParallelProcessingStrategy concurrency = new ParallelProcessingNoParallelImpl();
 		Set<String> result = null;
 		try
@@ -97,7 +101,7 @@ class AggregatorApplicationTests
 		}
 		//Stream.of(result).forEach(System.out::println);
 
-		System.out.println("size = "+result.size());
+		logger.info("size = "+result.size());
 
 		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/medium_noparallel.dat");
 
@@ -108,8 +112,9 @@ class AggregatorApplicationTests
 
 	@RepeatedTest(3)
 	@DisplayName("Runs the ForkJoin model on the Medium Files")
-	void testMediumFilesProcessingForkJoin()
+	void testMediumFilesProcessingForkJoin(TestInfo info )
 	{
+		logger.info(info.getDisplayName());
 		ParallelProcessingStrategy concurrency = new ParallelProcessingForkJoinImpl();
 		Set<String> result = null;
 		try
@@ -122,7 +127,7 @@ class AggregatorApplicationTests
 		}
 		//Stream.of(result).forEach(System.out::println);
 
-		System.out.println("size = "+result.size());
+		logger.info("size = "+result.size());
 
 		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/medium_fork_join.dat");
 
@@ -134,8 +139,9 @@ class AggregatorApplicationTests
 
 	@Test
 	@DisplayName("Runs the External Sorting parallel algorithm over the Small Files")
-	void testSmallFilesProcessingExternalSorting()
+	void testSmallFilesProcessingExternalSorting(TestInfo info )
 	{
+		logger.info(info.getDisplayName());
 		ParallelProcessingStrategy concurrency = new ParallelProcessingExternalSortImpl();
 		Set<String> result = null;
 		try
@@ -148,7 +154,7 @@ class AggregatorApplicationTests
 		}
 		//Stream.of(result).forEach(System.out::println);
 
-		System.out.println("size = "+result.size());
+		logger.info("size = "+result.size());
 
 		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/small_external_sorting.dat");
 
@@ -159,8 +165,9 @@ class AggregatorApplicationTests
 
 	@Test
 	@DisplayName("Runs the Java Parallel Streams on the Small Files")
-	void testSmallFilesProcessingParallelStream()
+	void testSmallFilesProcessingParallelStream(TestInfo info )
 	{
+		logger.info(info.getDisplayName());
 		ParallelProcessingStrategy concurrency = new ParallelProcessingStreamImpl();
 		Set<String> result = null;
 		try
@@ -173,7 +180,7 @@ class AggregatorApplicationTests
 		}
 		//Stream.of(result).forEach(System.out::println);
 
-		System.out.println("size = "+result.size());
+		logger.info("size = "+result.size());
 
 		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/small_parallel_stream.dat");
 
@@ -184,8 +191,9 @@ class AggregatorApplicationTests
 
 	@Test
 	@DisplayName("Runs the Java Sequential Streams on the Small Files")
-	void testSmallFilesProcessingSequentialStream()
+	void testSmallFilesProcessingSequentialStream(TestInfo info )
 	{
+		logger.info(info.getDisplayName());
 		ParallelProcessingStrategy concurrency = new ParallelProcessingNoParallelImpl();
 		Set<String> result = null;
 		try
@@ -198,7 +206,7 @@ class AggregatorApplicationTests
 		}
 		//Stream.of(result).forEach(System.out::println);
 
-		System.out.println("size = "+result.size());
+		logger.info("size = "+result.size());
 
 		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/small_noparallel.dat");
 
@@ -209,8 +217,9 @@ class AggregatorApplicationTests
 
 	@RepeatedTest(3)
 	@DisplayName("Runs the ForkJoin model on the Small Files")
-	void testSmallFilesProcessingForkJoin()
+	void testSmallFilesProcessingForkJoin(TestInfo info )
 	{
+		logger.info(info.getDisplayName());
 		ParallelProcessingStrategy concurrency = new ParallelProcessingForkJoinImpl();
 		Set<String> result = null;
 		try
@@ -223,7 +232,7 @@ class AggregatorApplicationTests
 		}
 		//Stream.of(result).forEach(System.out::println);
 
-		System.out.println("size = "+result.size());
+		logger.info("size = "+result.size());
 
 		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/small_fork_join.dat");
 
