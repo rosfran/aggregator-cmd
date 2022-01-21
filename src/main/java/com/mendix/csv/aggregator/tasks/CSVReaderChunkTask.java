@@ -26,7 +26,7 @@ public class CSVReaderChunkTask extends RecursiveTask<List<String>>
     {
         List<String> list = Collections.synchronizedList( new ArrayList<String>());
 
-        List<CSVReaderChunkTask> tasks = Collections.synchronizedList(new ArrayList<CSVReaderChunkTask>());
+        //List<CSVReaderChunkTask> tasks = Collections.synchronizedList(new ArrayList<CSVReaderChunkTask>());
 
         for ( Path path : this.paths )
         {
@@ -43,7 +43,8 @@ public class CSVReaderChunkTask extends RecursiveTask<List<String>>
 
         }
 
-        addResultsFromTasks(list, tasks);
+        //addResultsFromTasks(list, tasks);
+        Collections.sort(list);
 
         return list;
     }

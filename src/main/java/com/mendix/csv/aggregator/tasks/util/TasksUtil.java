@@ -40,11 +40,10 @@ public class TasksUtil
     }
 
 
-    static public List<Path>[] splitArrays(ArrayList<Path> list, int chunkSize)
+    static public List<Path>[] splitArrays(ArrayList<Path> list, int numChunks)
     {
 
-        int numChunks = (list.size() / chunkSize) + 1;
-
+        int chunkSize = (list.size() / numChunks) + 1;
         final List<Path>[] chunks = new ArrayList[numChunks];
 
         for(int i = 0; i < numChunks; i++) {

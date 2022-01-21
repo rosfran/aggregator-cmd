@@ -16,6 +16,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.mendix.csv.aggregator.tasks.util.TasksUtil.splitArrays;
 
@@ -54,7 +55,7 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
 
                 List<CSVReaderChunkTask> lsTasks = new ArrayList<CSVReaderChunkTask>();
 
-                List<Path>[] chunks = splitArrays(new ArrayList(allFilesFromDir), 6);
+                List<Path>[] chunks = splitArrays(new ArrayList(allFilesFromDir), 4);
 
                 for ( List<Path> col : chunks )
                 {
@@ -63,9 +64,10 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
                     lsTasks.add( t );
 
                     forkJoinPool.execute( t );
+
                 }
 
-                List<ForkJoinTask> lsTasksConv = lsTasks.stream()
+                List<ForkJoinTask> lsTasksConv = lsTasks.parallelStream()
                         .map(object -> (ForkJoinTask)object)
                         .collect(Collectors.toList());
                 do
@@ -87,11 +89,29 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
                     logger.warn("Failed orderly shutdown", ex);
                 }
 
-                for ( CSVReaderChunkTask task : lsTasks )
+                List<String> partialListResult = null;
+
+                for ( int i = 0 ; i < lsTasks.size(); i++  )
                 {
-                    List<String> partialList = task.join();
-                    tSet.addAll( partialList );
+
+                    List<String> partialList1 = lsTasks.get(i).join();
+
+                    getLogger().info("partialList1.size() = "+partialList1.size());
+
+                    if ( partialListResult != null )
+                    {
+                        partialListResult = Stream.concat(partialList1.parallelStream(),
+                                        partialListResult.parallelStream())
+                                .parallel()
+                                .sorted().collect(Collectors.toList());
+                    } else {
+                        partialListResult = partialList1;
+                    }
+
                 }
+
+                tSet = new TreeSet<String>(partialListResult);
+
 
             }
             catch (IOException e)
