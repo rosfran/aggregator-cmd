@@ -2,6 +2,7 @@ package com.mendix.csv.aggregator.parallel.impl;
 
 import com.mendix.csv.aggregator.config.ApplicationConfig;
 import com.mendix.csv.aggregator.parallel.ParallelProcessingStrategy;
+import com.mendix.csv.aggregator.parallel.ParallelStrategyType;
 import org.apache.logging.log4j.util.Strings;
 
 import java.io.IOException;
@@ -17,6 +18,12 @@ import java.util.stream.Stream;
  */
 public class ParallelProcessingNoParallelImpl extends ParallelProcessingStrategy
 {
+
+    @Override
+    public ParallelStrategyType getStrategyType()
+    {
+        return ParallelStrategyType.SEQUENTIAL_STREAM;
+    }
 
     @Override
     public Set<String> process(String dir) throws IOException

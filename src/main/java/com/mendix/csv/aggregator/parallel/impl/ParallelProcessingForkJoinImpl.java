@@ -2,6 +2,7 @@ package com.mendix.csv.aggregator.parallel.impl;
 
 import com.mendix.csv.aggregator.config.ApplicationConfig;
 import com.mendix.csv.aggregator.parallel.ParallelProcessingStrategy;
+import com.mendix.csv.aggregator.parallel.ParallelStrategyType;
 import com.mendix.csv.aggregator.tasks.CSVReaderChunkTask;
 import com.mendix.csv.aggregator.tasks.CSVReaderTask;
 import com.mendix.csv.aggregator.tasks.util.TasksUtil;
@@ -15,16 +16,19 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.mendix.csv.aggregator.tasks.util.TasksUtil.sleep;
-import static com.mendix.csv.aggregator.tasks.util.TasksUtil.splitArrays;
 
 /**
  * Reads, sorts and merges all CSV entries, running a Task (Worker Thread) by each file entry
  */
 public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
 {
+
+    @Override
+    public ParallelStrategyType getStrategyType()
+    {
+        return ParallelStrategyType.FORK_JOIN;
+    }
 
     @Override
     public Set<String> process(String dir) throws IOException
@@ -67,7 +71,6 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
 
                    // sleep();
                 } while ( !TasksUtil.isEveryTaskFinished(lsTasksConv) );
-
 
                 forkJoinPool.shutdown();
 

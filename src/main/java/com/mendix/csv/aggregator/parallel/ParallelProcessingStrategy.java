@@ -13,9 +13,11 @@ import java.util.Set;
 public abstract class ParallelProcessingStrategy implements ParallelProcessingStrategyInterface
 {
 
-    public Logger logger = LoggerFactory.getLogger(ParallelProcessingStrategy.class);
+    protected Logger logger = LoggerFactory.getLogger(ParallelProcessingStrategy.class);
 
-    public static final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+    protected ParallelStrategyType strategyType;
+
+    protected static final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
 
     long start = 0L;
 
@@ -25,14 +27,18 @@ public abstract class ParallelProcessingStrategy implements ParallelProcessingSt
     public void preProcessing()
     {
         start = Instant.now().toEpochMilli();
-        logger.info(String.format("\tStarted task."));
+        logger.info(String.format("\tStarted %s task.", getStrategyType() != null ?
+                getStrategyType().getDescription()
+                : "" ));
     }
 
     @Override
     public void postProcessing()
     {
         end = Instant.now().toEpochMilli();
-        logger.info(String.format("\tCompleted task in %d milliseconds", (end - start)));
+        logger.info(String.format("\tCompleted %s task in %d milliseconds", getStrategyType() != null ?
+                getStrategyType().getDescription()
+                : "", (end - start) ));
     }
 
     /**
@@ -67,4 +73,46 @@ public abstract class ParallelProcessingStrategy implements ParallelProcessingSt
         return s;
 
     }
+
+
+    public Logger getLogger()
+    {
+        return logger;
+    }
+
+    public void setLogger(Logger logger)
+    {
+        this.logger = logger;
+    }
+
+    protected ParallelStrategyType getStrategyType()
+    {
+        return strategyType;
+    }
+
+    protected void setStrategyType(ParallelStrategyType strategyType)
+    {
+        this.strategyType = strategyType;
+    }
+
+    public long getStart()
+    {
+        return start;
+    }
+
+    public void setStart(long start)
+    {
+        this.start = start;
+    }
+
+    public long getEnd()
+    {
+        return end;
+    }
+
+    public void setEnd(long end)
+    {
+        this.end = end;
+    }
+
 }

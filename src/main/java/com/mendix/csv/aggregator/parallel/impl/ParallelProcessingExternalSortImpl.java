@@ -2,6 +2,7 @@ package com.mendix.csv.aggregator.parallel.impl;
 
 import com.mendix.csv.aggregator.config.ApplicationConfig;
 import com.mendix.csv.aggregator.parallel.ParallelProcessingStrategy;
+import com.mendix.csv.aggregator.parallel.ParallelStrategyType;
 import com.mendix.csv.aggregator.tasks.CSVReaderChunkTask;
 import com.mendix.csv.aggregator.tasks.util.TasksUtil;
 import org.apache.logging.log4j.util.Strings;
@@ -13,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.mendix.csv.aggregator.tasks.util.TasksUtil.splitArrays;
@@ -23,6 +25,12 @@ import static com.mendix.csv.aggregator.tasks.util.TasksUtil.splitArrays;
  */
 public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrategy
 {
+
+    @Override
+    public ParallelStrategyType getStrategyType()
+    {
+        return ParallelStrategyType.EXTERNAL_SORT;
+    }
 
     @Override
     public Set<String> process(String dir) throws IOException
@@ -69,8 +77,15 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
 
                 } while ( !TasksUtil.isEveryTaskFinished(lsTasksConv) );
 
-                //forkJoinPool.awaitQuiescence( 40, TimeUnit.SECONDS );
                 forkJoinPool.shutdown();
+
+                try {
+                    if (!forkJoinPool.awaitTermination( 40, TimeUnit.SECONDS )) {
+                        logger.warn("Failed orderly shutdown");
+                    }
+                } catch (InterruptedException ex) {
+                    logger.warn("Failed orderly shutdown", ex);
+                }
 
                 for ( CSVReaderChunkTask task : lsTasks )
                 {

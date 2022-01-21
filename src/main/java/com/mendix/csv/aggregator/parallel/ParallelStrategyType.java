@@ -6,7 +6,7 @@ public enum ParallelStrategyType
     PARALLEL_STREAM     ("Parallel Java Stream"),
     EXTERNAL_SORT       ("External Sort"),
     SEQUENTIAL_STREAM   ("Sequential Java Stream"),
-    FORK_JOIN           ("Fork/Join model with tasks for each file")
+    FORK_JOIN           ("Fork/Join")
     ;
 
     private final String description;

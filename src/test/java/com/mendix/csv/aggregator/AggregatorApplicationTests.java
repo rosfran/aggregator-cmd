@@ -3,6 +3,7 @@ package com.mendix.csv.aggregator;
 import com.mendix.csv.aggregator.parallel.ParallelProcessingStrategy;
 import com.mendix.csv.aggregator.parallel.impl.ParallelProcessingExternalSortImpl;
 import com.mendix.csv.aggregator.parallel.impl.ParallelProcessingForkJoinImpl;
+import com.mendix.csv.aggregator.parallel.impl.ParallelProcessingNoParallelImpl;
 import com.mendix.csv.aggregator.parallel.impl.ParallelProcessingStreamImpl;
 import com.mendix.csv.aggregator.util.FilesUtil;
 import org.junit.jupiter.api.DisplayName;
@@ -20,9 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest()
+@SpringBootTest
 class AggregatorApplicationTests
 {
+
+	public static final int SMALL_FILES_RECORDS_SIZE = 551;
+
+	public static final int MEDIUM_FILES_RECORDS_SIZE = 37652;
 
 	private static Logger logger = Logger.getLogger(AggregatorApplicationTests.class.getName());
 
@@ -44,9 +49,9 @@ class AggregatorApplicationTests
 
 		System.out.println("size = "+result.size());
 
-		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/t.dat");
+		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/medium_external_sort.dat");
 
-		assertTrue( result.size() == 37652,
+		assertTrue( result.size() == MEDIUM_FILES_RECORDS_SIZE,
 				"Total result" );
 
 	}
@@ -69,13 +74,37 @@ class AggregatorApplicationTests
 
 		System.out.println("size = "+result.size());
 
-		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/t.dat");
+		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/medium_parallel_stream.dat");
 
-		assertTrue( result.size() == 37652,
+		assertTrue( result.size() == MEDIUM_FILES_RECORDS_SIZE,
 				"Total result" );
 
 	}
 
+	@Test
+	@DisplayName("Runs the Java Sequential Streams on the Medium Files")
+	void testMediumFilesProcessingSequentialStream()
+	{
+		ParallelProcessingStrategy concurrency = new ParallelProcessingNoParallelImpl();
+		Set<String> result = null;
+		try
+		{
+			result = concurrency.processAllFiles("src/main/resources/medium_example/");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		//Stream.of(result).forEach(System.out::println);
+
+		System.out.println("size = "+result.size());
+
+		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/medium_noparallel.dat");
+
+		assertTrue( result.size() == MEDIUM_FILES_RECORDS_SIZE,
+				"Total result" );
+
+	}
 
 	@RepeatedTest(3)
 	@DisplayName("Runs the ForkJoin model on the Medium Files")
@@ -95,9 +124,9 @@ class AggregatorApplicationTests
 
 		System.out.println("size = "+result.size());
 
-		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/t.dat");
+		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/medium_fork_join.dat");
 
-		assertTrue( result.size() == 37652,
+		assertTrue( result.size() == MEDIUM_FILES_RECORDS_SIZE,
 				"Total result" );
 
 	}
@@ -121,9 +150,9 @@ class AggregatorApplicationTests
 
 		System.out.println("size = "+result.size());
 
-		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/t.dat");
+		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/small_external_sorting.dat");
 
-		assertTrue( result.size() == 551,
+		assertTrue( result.size() == SMALL_FILES_RECORDS_SIZE,
 				"Total result" );
 
 	}
@@ -146,13 +175,37 @@ class AggregatorApplicationTests
 
 		System.out.println("size = "+result.size());
 
-		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/t.dat");
+		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/small_parallel_stream.dat");
 
-		assertTrue( result.size() == 551,
+		assertTrue( result.size() == SMALL_FILES_RECORDS_SIZE,
 				"Total result" );
 
 	}
 
+	@Test
+	@DisplayName("Runs the Java Sequential Streams on the Small Files")
+	void testSmallFilesProcessingSequentialStream()
+	{
+		ParallelProcessingStrategy concurrency = new ParallelProcessingNoParallelImpl();
+		Set<String> result = null;
+		try
+		{
+			result = concurrency.processAllFiles("src/main/resources/small_example/");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		//Stream.of(result).forEach(System.out::println);
+
+		System.out.println("size = "+result.size());
+
+		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/small_noparallel.dat");
+
+		assertTrue( result.size() == SMALL_FILES_RECORDS_SIZE,
+				"Total result" );
+
+	}
 
 	@RepeatedTest(3)
 	@DisplayName("Runs the ForkJoin model on the Small Files")
@@ -172,9 +225,9 @@ class AggregatorApplicationTests
 
 		System.out.println("size = "+result.size());
 
-		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/t.dat");
+		FilesUtil.writeAllLinesSortedToFile(result, "src/main/resources/small_fork_join.dat");
 
-		assertTrue( result.size() == 551,
+		assertTrue( result.size() == SMALL_FILES_RECORDS_SIZE,
 				"Total result" );
 
 	}
