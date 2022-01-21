@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
 
@@ -23,9 +24,9 @@ public class CSVReaderChunkTask extends RecursiveTask<List<String>>
     @Override
     public List<String> compute()
     {
-        List<String> list = new ArrayList<String>();
+        List<String> list = Collections.synchronizedList( new ArrayList<String>());
 
-        List<CSVReaderChunkTask> tasks = new ArrayList<CSVReaderChunkTask>();
+        List<CSVReaderChunkTask> tasks = Collections.synchronizedList(new ArrayList<CSVReaderChunkTask>());
 
         for ( Path path : this.paths )
         {

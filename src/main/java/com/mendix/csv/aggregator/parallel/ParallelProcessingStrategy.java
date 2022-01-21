@@ -13,7 +13,7 @@ import java.util.Set;
 public abstract class ParallelProcessingStrategy implements ParallelProcessingStrategyInterface
 {
 
-    Logger logger = LoggerFactory.getLogger(ParallelProcessingStrategy.class);
+    public Logger logger = LoggerFactory.getLogger(ParallelProcessingStrategy.class);
 
     public static final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
 

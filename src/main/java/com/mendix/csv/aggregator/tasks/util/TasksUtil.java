@@ -30,7 +30,7 @@ public class TasksUtil
     {
         for (ForkJoinTask task : lsTasks)
         {
-            if ( !task.isCompletedNormally() )
+            if ( !task.isDone() )
             {
                 return false;
             }

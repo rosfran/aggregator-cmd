@@ -9,10 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.RecursiveTask;
 import java.util.stream.Stream;
 
@@ -29,9 +26,9 @@ public class CSVReaderTask extends RecursiveTask<List<String>>
     @Override
     protected List<String> compute()
     {
-        List<String> list = new ArrayList<String>();
+        List<String> list = Collections.synchronizedList(new ArrayList<String>());
 
-        List<CSVReaderTask> tasks = new ArrayList<CSVReaderTask>();
+        List<CSVReaderTask> tasks = Collections.synchronizedList(new ArrayList<CSVReaderTask>());
 
         if ( Files.isRegularFile( this.path ))
         {
@@ -48,11 +45,6 @@ public class CSVReaderTask extends RecursiveTask<List<String>>
             CSVReaderTask task = new CSVReaderTask(this.path);
             task.fork();
             tasks.add(task);
-        }
-
-        if (tasks.size() > 50)
-        {
-            System.out.printf("%s: %d tasks ran.\n", this.path.toAbsolutePath(), tasks.size());
         }
 
         addResultsFromTasks(list, tasks);

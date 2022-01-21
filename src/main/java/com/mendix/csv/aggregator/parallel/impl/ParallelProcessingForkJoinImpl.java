@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,19 +40,18 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
         {
             try
             {
-                Stream<Path> allFilesFromDir = Files.find(directory,
+                List<CSVReaderTask> lsTasks = Collections.synchronizedList(new ArrayList<CSVReaderTask>());
+
+                Files.find(directory,
                         1,
                         (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
-                );
-
-                List<CSVReaderTask> lsTasks = new ArrayList<CSVReaderTask>();
-                allFilesFromDir.parallel().forEach( f -> {
+                ).parallel().forEach( f -> {
 
                     CSVReaderTask t =  new CSVReaderTask( f );
 
                     lsTasks.add( t );
 
-                    forkJoinPool.execute( t );
+                    forkJoinPool.submit( t );
 
                 } );
 
@@ -60,16 +60,24 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
                         .collect(Collectors.toList());
                 do
                 {
-//                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
-//                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
-//                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
-//                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
+                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
+                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
+                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
+                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
 
-                    sleep();
+                   // sleep();
                 } while ( !TasksUtil.isEveryTaskFinished(lsTasksConv) );
 
-                //forkJoinPool.awaitQuiescence( 40, TimeUnit.SECONDS );
 
+                forkJoinPool.shutdown();
+
+                try {
+                    if (!forkJoinPool.awaitTermination( 40, TimeUnit.SECONDS )) {
+                        logger.warn("Failed orderly shutdown");
+                    }
+                } catch (InterruptedException ex) {
+                    logger.warn("Failed orderly shutdown", ex);
+                }
 
                 for ( CSVReaderTask task : lsTasks )
                 {
@@ -77,18 +85,18 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
                     tSet.addAll( partialList );
                 }
 
-                forkJoinPool.shutdown();
-
             }
             catch (IOException e)
             {
                 e.printStackTrace();
             }
 
-
         }
 
         return tSet;
 
     }
+
+
+
 }

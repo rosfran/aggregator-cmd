@@ -15,7 +15,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.io.IOException;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -41,7 +40,7 @@ class AggregatorApplicationTests
 		{
 			e.printStackTrace();
 		}
-		Stream.of(result).forEach(System.out::println);
+		//Stream.of(result).forEach(System.out::println);
 
 		System.out.println("size = "+result.size());
 
@@ -66,7 +65,7 @@ class AggregatorApplicationTests
 		{
 			e.printStackTrace();
 		}
-		Stream.of(result).forEach(System.out::println);
+		//Stream.of(result).forEach(System.out::println);
 
 		System.out.println("size = "+result.size());
 
@@ -92,7 +91,7 @@ class AggregatorApplicationTests
 		{
 			e.printStackTrace();
 		}
-		Stream.of(result).forEach(System.out::println);
+		//Stream.of(result).forEach(System.out::println);
 
 		System.out.println("size = "+result.size());
 
@@ -118,7 +117,7 @@ class AggregatorApplicationTests
 		{
 			e.printStackTrace();
 		}
-		Stream.of(result).forEach(System.out::println);
+		//Stream.of(result).forEach(System.out::println);
 
 		System.out.println("size = "+result.size());
 
@@ -143,7 +142,7 @@ class AggregatorApplicationTests
 		{
 			e.printStackTrace();
 		}
-		Stream.of(result).forEach(System.out::println);
+		//Stream.of(result).forEach(System.out::println);
 
 		System.out.println("size = "+result.size());
 
@@ -169,7 +168,7 @@ class AggregatorApplicationTests
 		{
 			e.printStackTrace();
 		}
-		Stream.of(result).forEach(System.out::println);
+		//Stream.of(result).forEach(System.out::println);
 
 		System.out.println("size = "+result.size());
 
