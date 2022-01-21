@@ -34,7 +34,7 @@ public class CSVReaderTask extends RecursiveTask<List<String>>
         {
             try
             {
-                Files.lines(this.path).filter(l -> Strings.isNotBlank(l)).parallel().forEach(l -> list.add(l));
+                Files.lines(this.path).parallel().filter(l -> Strings.isNotBlank(l)).parallel().forEach(l -> list.add(l));
             }
             catch (IOException e)
             {

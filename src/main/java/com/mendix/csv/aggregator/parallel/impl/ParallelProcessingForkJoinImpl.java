@@ -60,10 +60,10 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
                         .collect(Collectors.toList());
                 do
                 {
-                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
-                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
-                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
-                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
+//                    System.out.printf("Parallelism: %d\n", forkJoinPool.getParallelism());
+//                    System.out.printf("Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
+//                    System.out.printf("Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
+//                    System.out.printf("Steal Count: %d\n", forkJoinPool.getStealCount());
 
                    // sleep();
                 } while ( !TasksUtil.isEveryTaskFinished(lsTasksConv) );
