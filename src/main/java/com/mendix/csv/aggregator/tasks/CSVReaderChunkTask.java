@@ -34,7 +34,7 @@ public class CSVReaderChunkTask extends RecursiveTask<List<String>>
             try
             {
 
-                Files.lines(path).parallel().filter(l -> Strings.isNotBlank(l)).forEach(l -> list.add(l));
+                Files.lines(path).parallel().sorted().filter(l -> Strings.isNotBlank(l)).forEach(l -> list.add(l));
             }
             catch (IOException e)
             {
@@ -44,7 +44,7 @@ public class CSVReaderChunkTask extends RecursiveTask<List<String>>
         }
 
         //addResultsFromTasks(list, tasks);
-        Collections.sort(list);
+        //Collections.sort(list);
 
         return list;
     }

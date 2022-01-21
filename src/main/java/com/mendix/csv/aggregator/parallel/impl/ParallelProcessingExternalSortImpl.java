@@ -53,10 +53,11 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
                         (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
                 ).parallel().collect( Collectors.toList());
 
-                List<CSVReaderChunkTask> lsTasks = new ArrayList<CSVReaderChunkTask>();
+                List<CSVReaderChunkTask> lsTasks = Collections.synchronizedList(new ArrayList<CSVReaderChunkTask>());
 
-                List<Path>[] chunks = splitArrays(new ArrayList(allFilesFromDir), 3);
+                List<List<Path>> chunks = splitArrays(new ArrayList(allFilesFromDir), 4);
 
+                int s = 0;
                 for ( List<Path> col : chunks )
                 {
                     CSVReaderChunkTask t =  new CSVReaderChunkTask( col );
@@ -65,10 +66,14 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
 
                     forkJoinPool.execute( t );
 
+                    s+= col.size();
+
                 }
+                getLogger().info("total size after chunks = {} - quant. chunks = {} ", s, chunks.size());
 
                 List<ForkJoinTask> lsTasksConv = lsTasks.parallelStream()
                         .map(object -> (ForkJoinTask)object)
+                        .parallel()
                         .collect(Collectors.toList());
                 do
                 {
@@ -89,7 +94,7 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
                     logger.warn("Failed orderly shutdown", ex);
                 }
 
-                List<String> partialListResult = null;
+                List<String> partialListResult = new ArrayList<String>();
 
                 for ( int i = 0 ; i < lsTasks.size(); i++  )
                 {
@@ -97,16 +102,9 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
                     List<String> partialList1 = lsTasks.get(i).join();
 
                     //getLogger().info("partialList1.size() = "+partialList1.size());
-
-                    if ( partialListResult != null )
-                    {
-                        partialListResult = Stream.concat(partialList1.parallelStream(),
-                                        partialListResult.parallelStream())
-                                .parallel()
-                                .sorted().collect(Collectors.toList());
-                    } else {
-                        partialListResult = new ArrayList<String>(partialList1);
-                    }
+                    partialListResult = Collections.synchronizedList( Stream.concat(
+                                    partialListResult.parallelStream(), partialList1.parallelStream())
+                            .sorted().collect(Collectors.toList()) );
 
                 }
 

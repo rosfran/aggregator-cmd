@@ -39,23 +39,29 @@ public class TasksUtil
         return true;
     }
 
-
-    static public List<Path>[] splitArrays(ArrayList<Path> list, int numChunks)
+    public static <T>List<List<T>> splitArrays( final List<T> list, final int numChunks )
     {
+        final List<List<T>> parts = new ArrayList<List<T>>();
+        final int chunkSize = list.size() / numChunks;
+        int iLeft = list.size() % numChunks;
+        int iRight = chunkSize;
 
-        int chunkSize = (list.size() / numChunks) + 1;
-        final List<Path>[] chunks = new ArrayList[numChunks];
+        for( int i = 0, iT = list.size(); i < iT; i += iRight ) {
+            if( iLeft > 0 ) {
+                iLeft--;
 
-        for(int i = 0; i < numChunks; i++) {
-            int offset = i + 1;
-            int from = Math.max(((offset - 1) * chunkSize), 0);
-            int to = Math.min((offset * chunkSize), list.size());
-            chunks[i] = new ArrayList(list.subList(from, to));
+                iRight = chunkSize + 1;
+            }
+            else
+            {
+                iRight = chunkSize;
+            }
+
+            parts.add( new ArrayList<T>( list.subList( i, Math.min( iT, i + iRight ) ) ) );
         }
 
-        return chunks;
+        return parts;
     }
-
 
     static public void sleep()
     {
