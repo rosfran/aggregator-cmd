@@ -55,7 +55,7 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
 
                 List<CSVReaderChunkTask> lsTasks = new ArrayList<CSVReaderChunkTask>();
 
-                List<Path>[] chunks = splitArrays(new ArrayList(allFilesFromDir), 4);
+                List<Path>[] chunks = splitArrays(new ArrayList(allFilesFromDir), 3);
 
                 for ( List<Path> col : chunks )
                 {
@@ -96,7 +96,7 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
 
                     List<String> partialList1 = lsTasks.get(i).join();
 
-                    getLogger().info("partialList1.size() = "+partialList1.size());
+                    //getLogger().info("partialList1.size() = "+partialList1.size());
 
                     if ( partialListResult != null )
                     {
@@ -105,7 +105,7 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
                                 .parallel()
                                 .sorted().collect(Collectors.toList());
                     } else {
-                        partialListResult = partialList1;
+                        partialListResult = new ArrayList<String>(partialList1);
                     }
 
                 }
