@@ -61,7 +61,7 @@ public class CSVAggregatorService
         {
             e.printStackTrace();
         }
-   
+
         return result;
 
     }
