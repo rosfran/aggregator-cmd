@@ -57,7 +57,7 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
 
                 List<List<Path>> chunks = splitArrays(new ArrayList(allFilesFromDir), 4);
 
-                int s = 0;
+                //int s = 0;
                 for ( List<Path> col : chunks )
                 {
                     CSVReaderChunkTask t =  new CSVReaderChunkTask( col );
@@ -66,10 +66,10 @@ public class ParallelProcessingExternalSortImpl extends ParallelProcessingStrate
 
                     forkJoinPool.execute( t );
 
-                    s+= col.size();
+                    //s+= col.size();
 
                 }
-                getLogger().info("total size after chunks = {} - quant. chunks = {} ", s, chunks.size());
+                //getLogger().info("total size after chunks = {} - quant. chunks = {} ", s, chunks.size());
 
                 List<ForkJoinTask> lsTasksConv = lsTasks.parallelStream()
                         .map(object -> (ForkJoinTask)object)

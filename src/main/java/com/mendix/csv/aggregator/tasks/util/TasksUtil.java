@@ -1,13 +1,8 @@
 package com.mendix.csv.aggregator.tasks.util;
 
-import com.mendix.csv.aggregator.tasks.CSVReaderChunkTask;
-import com.mendix.csv.aggregator.tasks.CSVReaderTask;
-
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,6 +34,14 @@ public class TasksUtil
         return true;
     }
 
+    /**
+     * Splits up an array in some smaller chunks.
+     *
+     * @param list
+     * @param numChunks
+     * @param <T>
+     * @return
+     */
     public static <T>List<List<T>> splitArrays( final List<T> list, final int numChunks )
     {
         final List<List<T>> parts = new ArrayList<List<T>>();
@@ -63,6 +66,9 @@ public class TasksUtil
         return parts;
     }
 
+    /**
+     * Put the current thread to sleep for 100 miliseconds
+     */
     static public void sleep()
     {
         try

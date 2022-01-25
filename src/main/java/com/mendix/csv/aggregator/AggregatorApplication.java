@@ -6,10 +6,12 @@ import com.mendix.csv.aggregator.parallel.ParallelStrategyType;
 import com.mendix.csv.aggregator.parallel.impl.ParallelProcessingExternalSortImpl;
 import com.mendix.csv.aggregator.parallel.impl.ParallelProcessingForkJoinImpl;
 import com.mendix.csv.aggregator.parallel.impl.ParallelProcessingNoParallelImpl;
+import com.mendix.csv.aggregator.service.CSVAggregatorService;
 import com.mendix.csv.aggregator.util.FilesUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -30,6 +32,9 @@ public class AggregatorApplication implements ApplicationRunner
 
 	private static final Logger logger = LoggerFactory.getLogger(AggregatorApplication.class);
 
+	@Autowired
+	private CSVAggregatorService csvAggregatorService;
+
 	public static void main(String[] args) {
 
 		SpringApplication.run(AggregatorApplication.class, args);
@@ -37,7 +42,8 @@ public class AggregatorApplication implements ApplicationRunner
 	}
 
 	@Override
-	public void run(ApplicationArguments args) throws Exception {
+	public void run(ApplicationArguments args) throws Exception
+	{
 		logger.info("Application started with command-line arguments: {}", Arrays.toString(args.getSourceArgs()));
 		logger.info("NonOptionArgs: {}", args.getNonOptionArgs());
 		logger.info("OptionNames: {}", args.getOptionNames());
@@ -70,41 +76,31 @@ public class AggregatorApplication implements ApplicationRunner
 			}
 		}
 
-
 		fromDir = Strings.isNotEmpty(fromDir) ? fromDir : "src/main/resources/medium_example/";
 
 		toFile = Strings.isNotEmpty(toFile) ? toFile : "src/main/resources/merged_file.dat";
 
 		ParallelProcessingStrategy concurrency = null;
 
+		Set<String> result = null;
+
 		if ( strategy == ParallelStrategyType.EXTERNAL_SORT)
 		{
-			concurrency = new ParallelProcessingExternalSortImpl();
+			result = csvAggregatorService.processFileUsingExternalSortStrategy( fromDir );
 
 		} else if ( strategy == ParallelStrategyType.PARALLEL_STREAM)
 		{
-			concurrency = new ParallelProcessingNoParallelImpl();
+			result = csvAggregatorService.processFileUsingParallelStreamStrategy( fromDir );
 		} else if ( strategy == ParallelStrategyType.SEQUENTIAL_STREAM)
 		{
-			concurrency = new ParallelProcessingNoParallelImpl();
+			result = csvAggregatorService.processFileUsingSequentialStreamStrategy( fromDir );
 		} else {
-			concurrency = new ParallelProcessingForkJoinImpl();
+			result = csvAggregatorService.processFileUsingForkJoinStrategy(fromDir);
 		}
-
-		Set<String> result = null;
-		try
-		{
-			result = concurrency.processAllFiles( fromDir );
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-		//Stream.of(result).forEach(System.out::println);
 
 		logger.info("size = {}", result.size());
 
-		FilesUtil.writeAllLinesSortedToFile(result, toFile);
+		csvAggregatorService.writeProcessedResultToFile(result, toFile);
 
 	}
 
