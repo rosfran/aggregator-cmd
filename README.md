@@ -6,7 +6,7 @@ A solution to merge in a sorted way a list of CSV files.
 
     The main feature is implemented by the service CSVAggregatorService. It reads a list of CSV files asynchronously, 
     sort all this files in increasing order (based on the only column value), write all these ordered values into
-    a unique CSV file. The CSV aggregator procedure uses Java 8 parallel stream for reading and sorting files.
+    a unique CSV file. The CSV aggregator procedure uses Java 11 parallel stream for reading and sorting files.
 
 # Compiling and packaging
 
