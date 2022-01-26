@@ -27,19 +27,19 @@ A solution to merge in a sorted way a list of CSV files.
 
 ### external - Implements an External Sort algorithm. The main difference from the others is that it
 ###           splits off all file paths in groups, which are processed in groups by the Task (Worker Thread)
-###           Implemented by class: com.mendix.csv.aggregator.parallel.impl.ParallelProcessingExternalSortImpl
+###           Implemented by class: ParallelProcessingExternalSortImpl
 
 ### parallel - Implements a parallel algorithm using Java Parallel Streams. The main difference from the others is that
 ###           the decision on the Task's distribution and concurrency are given to the internal mechanisms inside Java Streams.
-###           Implemented by class: com.mendix.csv.aggregator.parallel.impl.ParallelProcessingStreamImpl
+###           Implemented by class: ParallelProcessingStreamImpl
 
 ### sequential - Implements a sequantial algorithm using Java Streams. The main difference from the others is that
 ###           it uses sequential Java Streams.
-###           Implemented by class: com.mendix.csv.aggregator.parallel.impl.ParallelProcessingNoParallelImpl
+###           Implemented by class: ParallelProcessingNoParallelImpl
 
 ### forkjoin - Implements a parallel algorithm running on a ForkJoin pool. The main difference from the others is that 
 ###           each individuals Tasks runs only one file entry. 
-###           Implemented by class: com.mendix.csv.aggregator.parallel.impl.ParallelProcessingForkJoinImpl
+###           Implemented by class: ParallelProcessingForkJoinImpl
     
     The best performance is for the external strategy. It has almost the double of perfomance when compared with
     the forkjoin strategy.
@@ -65,7 +65,7 @@ java -jar target/aggregator-cmd-0.0.1.jar strategy=external fromDir=src/main/res
 
 # Test cases
 
-    The class com.mendix.csv.aggregator.AggregatorApplicationTests, in the test Maven profile, uses JUnit
+    The class AggregatorApplicationTests, in the test Maven profile, uses JUnit
     to implement some interesting test cases.
 
 * testMediumFilesProcessingExternalSorting
