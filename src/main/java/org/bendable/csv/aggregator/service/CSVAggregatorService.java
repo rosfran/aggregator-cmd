@@ -18,7 +18,12 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Set;
 
-
+/**
+ * This is a wrapper for 4 strategies of reading and sorting the DAT files. For example, the method
+ * processFileUsingExternalSortStrategy uses the External Sort strategy, which consists on reading a
+ * list of CSV files asynchronously, sort all this files in increasing order (based on the only column value),
+ * write all these ordered values intoa unique CSV file.
+ */
 @Component
 public class CSVAggregatorService
 {

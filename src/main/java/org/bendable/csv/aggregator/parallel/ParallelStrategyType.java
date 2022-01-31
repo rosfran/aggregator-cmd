@@ -1,5 +1,8 @@
 package org.bendable.csv.aggregator.parallel;
 
+/**
+ * Defines the 4 strategy types for reading and sorting files.
+ */
 public enum ParallelStrategyType
 {
 

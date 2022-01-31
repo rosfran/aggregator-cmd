@@ -19,6 +19,14 @@ import java.util.stream.Collectors;
 
 /**
  * Reads, sorts and merges all CSV entries, running a Task (Worker Thread) by each file entry
+ *
+ * It will 4 some steps:
+ *
+ * 1. Creates in parallel a list of file names;
+ * 2. For each file name, starts a Task (using the execute method from the ForkJoin thread pool). This Task
+ *    will read and sort each file;
+ * 3. Signalize the ThreadPool to stop (by the way, this command shutdown() here forks all Tasks);
+ * 4. Since the parallel processing stopped, we JOIN each individual Task, and sort everything, merging the results.
  */
 public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
 {
@@ -45,6 +53,9 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
             {
                 List<CSVReaderTask> lsTasks = Collections.synchronizedList(new ArrayList<CSVReaderTask>());
 
+                /*
+                 Obtains a list of files, which are obtained from a given directory
+                 */
                 Files.find(directory,
                         1,
                         (path, basicFileAttributes) -> path.toFile().getName().matches(ApplicationConfig.DEFAULT_FILE_PATTERN)
@@ -54,10 +65,20 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
 
                     lsTasks.add( t );
 
-                    forkJoinPool.submit( t );
+                    /* this actually forks this task, running it like a Thread */
+                    forkJoinPool.execute( t );
 
                 } );
 
+                 /* This code is only to convert the type of the elements of this list, for convenience,
+                   because we don't need to create 2 versions of the function isEveryTaskFinished
+
+                   Java has a problem - it doesn't consider as a polymorphic implementation if you
+                   have 2 functions with the same name, but as parameters only a List with diverse
+                   type of elements. For example, if I have 2 methods on the same class, one as
+                   write(List<String>) and another write(List<StringBuffer>) it will result on
+                   an exception.
+                 */
                 List<ForkJoinTask> lsTasksConv = lsTasks.stream()
                         .map(object -> (ForkJoinTask)object)
                         .collect(Collectors.toList());
@@ -71,6 +92,9 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
                    // sleep();
                 } while ( !TasksUtil.isEveryTaskFinished(lsTasksConv) );
 
+                /* this is a common step when using these pools - it only signalize the thread pool,
+                 * doesn't really interrupt all the threads immediately
+                 */
                 forkJoinPool.shutdown();
 
                 try {
@@ -81,6 +105,12 @@ public class ParallelProcessingForkJoinImpl extends ParallelProcessingStrategy
                     logger.warn("Failed orderly shutdown", ex);
                 }
 
+               /* enters the REDUCE (JOIN) phase of parallel computing - by the way,
+                  we only need to get the results of each individual Task, and join
+                  these results, taking care of sorting all of them (this is done by
+                  the TreeSet, which implements sorting for each added element
+                  ( this is O(log n) time complexity )
+                 */
                 for ( CSVReaderTask task : lsTasks )
                 {
                     List<String> partialList = task.join();
