@@ -18,6 +18,7 @@ write all these ordered values intoa unique CSV file.**
 **All the 4 strategies for sorting text files uses Java 8 parallel stream 
 for reading and sorting files.**
 
+
 # Compiling and packaging
 
 **_This application uses Java 11 with Maven version 3.8. You can build it with:_** 
